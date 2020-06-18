@@ -1,28 +1,39 @@
-import express from "express";
+import "core-js";
+import "regenerator-runtime/runtime";
+import Koa from "koa";
+import Router from "koa-router";
+import serve from 'koa-static'
 import path from "path";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import App from "./client/app.js";
 
-function handleRender(req, res) {
-    const reactHtml = ReactDOMServer.renderToString(<App />);
-    const htmlTemplate = `<!DOCTYPE html>
-<html>
-    <head>
-        <title>Universal React server bundle</title>
-    </head>
-    <body>
-        <div id="app">${reactHtml}</div>
-        <script src="public/client.bundle.js"></script>
-    </body>
-</html>`;
-    res.send(htmlTemplate);
+async function handleRender(ctx, next) {
+    try {
+        await next();
+        const reactHtml = ReactDOMServer.renderToString(<App />);
+        const htmlTemplate = `<!DOCTYPE html>
+            <html>
+                <head>
+                    <title>Universal React server bundle</title>
+                </head>
+                <body>
+                    <div id="app">${reactHtml}</div>
+                    <script src="public/client.bundle.js"></script>
+                </body>
+            </html>`;
+        ctx.body = htmlTemplate;
+    } catch (error) {
+        next(error);
+    }
 }
 
-const app = express();
+const app = new Koa();
 
-app.use("/public", express.static("./public"));
+app.use(serve("./dist/public"));
 
-app.get("*", handleRender);
-app.listen(3000);
-console.log("App is running on http://localhost:3000");
+const router = new Router();
+router.get("(.*)", handleRender);
+
+app.use(router.routes());
+app.listen(3000, () => { console.log("Koa App is running on http://localhost:3000") });
