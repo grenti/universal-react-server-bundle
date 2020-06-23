@@ -3,6 +3,7 @@ const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 
 const clientConfig = {
+    mode: 'development',
     entry: './client/index.js',
     output: {
         path: path.resolve(__dirname, 'dist'),
@@ -16,10 +17,16 @@ const clientConfig = {
                 use: 'babel-loader'
             }
         ]
-    }
+    },
+    plugins: [
+        new webpack.BannerPlugin({
+            banner: 'require("source-map-support").install();',
+        }),
+    ]
 };
 
 const serverConfig = {
+    mode: 'development',
     entry: './server.js',
     target: "node",
     devtool: "source-map",

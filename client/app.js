@@ -2,7 +2,7 @@ import React from "react";
 
 class App extends React.Component {
     render() {
-        return <div>React application running!</div>;
+        return <div>Anye's React application running!</div>;
     }
 };
 

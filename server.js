@@ -1,39 +1,41 @@
-import "core-js";
 import "regenerator-runtime/runtime";
-import Koa from "koa";
-import Router from "koa-router";
-import serve from 'koa-static'
+import webpack from 'webpack';
+import express from 'express';
 import path from "path";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import App from "./client/app.js";
+import webpackDevMiddlware from 'webpack-dev-middleware';
+import webpackHotMiddlware from 'webpack-dev-middleware';
 
-async function handleRender(ctx, next) {
-    try {
-        await next();
-        const reactHtml = ReactDOMServer.renderToString(<App />);
-        const htmlTemplate = `<!DOCTYPE html>
-            <html>
-                <head>
-                    <title>Universal React server bundle</title>
-                </head>
-                <body>
-                    <div id="app">${reactHtml}</div>
-                    <script src="public/client.bundle.js"></script>
-                </body>
-            </html>`;
-        ctx.body = htmlTemplate;
-    } catch (error) {
-        next(error);
-    }
+import config from './webpack.config';
+
+function handleRender(req, res) {
+    const reactHtml = ReactDOMServer.renderToString(<App />);
+    const htmlTemplate = `<!DOCTYPE html>
+        <html>
+            <head>
+                <title>Universal React server bundle</title>
+            </head>
+            <body>
+                <div id="app">${reactHtml}</div>
+                <script src="public/client.bundle.js"></script>
+            </body>
+        </html>`;
+    res.send(htmlTemplate);
 }
 
-const app = new Koa();
+const app = express();
 
-app.use(serve("./dist/public"));
+app.use('/public', express.static("./dist/public"));
 
-const router = new Router();
-router.get("(.*)", handleRender);
+const compiler = webpack(config);
+app.use(webpackDevMiddlware(compiler, {
+    publicPath: '/',
+}));
 
-app.use(router.routes());
-app.listen(3000, () => { console.log("Koa App is running on http://localhost:3000") });
+app.use(webpackHotMiddlware(compiler));
+
+app.get("*", handleRender);
+
+app.listen(3000, () => { console.log("Express App is running on http://localhost:3000") });
