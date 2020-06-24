@@ -16,6 +16,7 @@ function handleRender(req, res) {
         <html>
             <head>
                 <title>Universal React server bundle</title>
+                <link rel="stylesheet" href="public/client.css"></link>
             </head>
             <body>
                 <div id="app">${reactHtml}</div>
