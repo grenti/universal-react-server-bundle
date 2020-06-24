@@ -1,4 +1,7 @@
 .container {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 70% 1fr;
+    grid-template-rows: .2vh .7vh .1vh;
+    gap: 6px;
     justify-content: center;
 }

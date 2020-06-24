@@ -1,4 +1,5 @@
 import "regenerator-runtime/runtime";
+import 'css-modules-require-hook/preset'
 import webpack from 'webpack';
 import express from 'express';
 import path from "path";
@@ -16,11 +17,11 @@ function handleRender(req, res) {
         <html>
             <head>
                 <title>Universal React server bundle</title>
-                <link rel="stylesheet" href="public/client.css"></link>
+                <link rel="stylesheet" href="/public/client.css"></link>
             </head>
             <body>
                 <div id="app">${reactHtml}</div>
-                <script src="public/client.bundle.js"></script>
+                <script src="/public/client.bundle.js"></script>
             </body>
         </html>`;
     res.send(htmlTemplate);
@@ -28,14 +29,23 @@ function handleRender(req, res) {
 
 const app = express();
 
+app.use('/', express.static("./dist"));
 app.use('/public', express.static("./dist/public"));
 
 const compiler = webpack(config);
 app.use(webpackDevMiddlware(compiler, {
     publicPath: '/',
+    serverSideRender: true,
+    stats: { colors: true },
+    watchOptions: {
+        aggregateTimeout: 200,
+        poll: 1000,
+    },
 }));
 
-app.use(webpackHotMiddlware(compiler));
+app.use(webpackHotMiddlware(compiler, {
+    heartbeat: 60 * 1000,
+}));
 
 app.get("*", handleRender);
 
